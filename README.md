@@ -134,6 +134,8 @@ void loop() {}
   - Minimal AM tuning flow with operation-state heartbeat.
 - `examples/feature_smoke_test/feature_smoke_test.ino`
   - Pass/fail style feature checks (FMSI and Digital Radio support behavior).
+- `examples/tef6686_full_console/tef6686_full_console.ino`
+  - Full TEF6686 console workflow (heartbeat mute, serial tune/volume/reinit, RDS decode, periodic status), aligned with `ref/tef6686done.ino`.
 
 Compile any example quickly:
 
