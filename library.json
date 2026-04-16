@@ -1,0 +1,41 @@
+{
+  "name": "TEF668X",
+  "version": "0.1.0",
+  "description": "Arduino library for TEF6686/87/88/89 with variant selection, patch upload, tuning, feature control, and status readback (Uno/Nano/Mega, ESP8266/ESP32, and more).",
+  "keywords": [
+    "radio",
+    "tef668x",
+    "tef6686",
+    "tef6687",
+    "tef6688",
+    "tef6689",
+    "i2c",
+    "arduino",
+    "esp32",
+    "esp8266",
+    "platformio"
+  ],
+  "authors": [
+    {
+      "name": "SamuelCircuitStudio",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": [
+    "arduino"
+  ],
+  "platforms": [
+    "*"
+  ],
+  "headers": "TEF668X.h",
+  "build": {
+    "srcFilter": [
+      "+<*>"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SamuelCicuitStudio/TEF668X_lib.git"
+  }
+}

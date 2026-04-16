@@ -1,0 +1,14 @@
+# Local reference material (not part of distributable library)
+ref/
+
+# Build artifacts
+.pio/
+*.tar.gz
+
+# IDE/local
+.vscode/
+.idea/
+
+# OS junk
+Thumbs.db
+.DS_Store
