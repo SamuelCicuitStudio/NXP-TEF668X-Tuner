@@ -122,6 +122,28 @@ void setup() {
 void loop() {}
 ```
 
+## Examples and tests
+
+- `examples/basic_fm/basic_fm.ino`
+  - Baseline FM bring-up, profile apply, tune, and periodic quality print.
+- `examples/variant_probe/variant_probe.ino`
+  - Detects and prints chip ID, active/detected variant, and feature flags.
+- `examples/fm_quality_monitor/fm_quality_monitor.ino`
+  - CSV-style FM telemetry output for logging and tuning validation.
+- `examples/am_basic/am_basic.ino`
+  - Minimal AM tuning flow with operation-state heartbeat.
+- `examples/feature_smoke_test/feature_smoke_test.ino`
+  - Pass/fail style feature checks (FMSI and Digital Radio support behavior).
+
+Compile any example quickly:
+
+```bash
+platformio ci --board uno --lib="." examples/basic_fm/basic_fm.ino
+platformio ci --board nanoatmega328 --lib="." examples/variant_probe/variant_probe.ino
+platformio ci --board megaatmega2560 --lib="." examples/fm_quality_monitor/fm_quality_monitor.ino
+platformio ci --board esp32dev --lib="." examples/feature_smoke_test/feature_smoke_test.ino
+```
+
 ## Publishing to PlatformIO Registry
 
 From this library folder:
