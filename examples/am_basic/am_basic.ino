@@ -1,8 +1,22 @@
+/**
+ * @file am_basic.ino
+ * @brief TEF6686 AM preset tune example.
+ *
+ * @details
+ * Demonstrates a minimal AM flow on TEF6686:
+ * - force TEF6686 variant policy
+ * - initialize the chip
+ * - set audio volume
+ * - tune AM preset frequency
+ * - print operation state periodically
+ */
 #include <Arduino.h>
 #include <Wire.h>
 #include <TEF668X.h>
 
 TEF668X radio;
+static const uint8_t kI2cAddress = 0x64;
+static const uint32_t kCrystalHz = 9216000UL;
 static const uint16_t kAmFrequency = 999; // 999 kHz (MW)
 
 static bool checkOk(const char* label, TEF668X::Error e) {
@@ -18,10 +32,11 @@ void setup() {
   delay(200);
 
   Wire.begin();
-  radio.begin(Wire, 0x64);
+  radio.begin(Wire, kI2cAddress);
   radio.setI2CSpeeds(100000UL, 100000UL);
+  radio.setVariantPolicy(TEF668X::VariantPolicy::ForceTEF6686);
 
-  if (!checkOk("initAuto", radio.initAuto(9216000UL, false))) return;
+  if (!checkOk("initAuto", radio.initAuto(kCrystalHz, false))) return;
   if (!checkOk("setVolumeDb10", radio.setVolumeDb10(-100))) return; // -10.0 dB
   if (!checkOk("tuneAmPreset", radio.tuneAmPreset(kAmFrequency))) return;
   if (!checkOk("setMute", radio.setMute(false))) return;
@@ -46,4 +61,3 @@ void loop() {
     Serial.println(static_cast<uint8_t>(e));
   }
 }
-

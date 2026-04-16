@@ -1,8 +1,21 @@
+/**
+ * @file fm_quality_monitor.ino
+ * @brief TEF6686 FM quality monitor with CSV output.
+ *
+ * @details
+ * Starts TEF6686 in FM mode and prints a periodic CSV line with:
+ * level, USN, WAM, offset, bandwidth, modulation, signal status,
+ * and processing percentages (softmute/highcut/stereo/st-hi-blend).
+ *
+ * Variant policy is forced to TEF6686.
+ */
 #include <Arduino.h>
 #include <Wire.h>
 #include <TEF668X.h>
 
 TEF668X radio;
+static const uint8_t kI2cAddress = 0x64;
+static const uint32_t kCrystalHz = 9216000UL;
 static const uint16_t kFmFrequency = 10170; // 101.70 MHz
 
 static void printFixed1(int32_t value_x10) {
@@ -28,11 +41,12 @@ void setup() {
   delay(200);
 
   Wire.begin();
-  radio.begin(Wire, 0x64);
+  radio.begin(Wire, kI2cAddress);
   radio.setI2CSpeeds(100000UL, 100000UL);
   radio.setPatchChunkSize(24);
+  radio.setVariantPolicy(TEF668X::VariantPolicy::ForceTEF6686);
 
-  if (!checkOk("initAuto", radio.initAuto(9216000UL, false))) return;
+  if (!checkOk("initAuto", radio.initAuto(kCrystalHz, false))) return;
   if (!checkOk("applyFmDefaultProfile", radio.applyFmDefaultProfile(-80))) return;
   if (!checkOk("tuneFmPreset", radio.tuneFmPreset(kFmFrequency))) return;
   if (!checkOk("setMute", radio.setMute(false))) return;
@@ -78,4 +92,3 @@ void loop() {
   printFixed1(p.stHiBlend_x10_pct);
   Serial.println();
 }
-

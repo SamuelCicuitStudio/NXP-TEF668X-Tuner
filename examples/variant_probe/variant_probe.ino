@@ -1,8 +1,21 @@
+/**
+ * @file variant_probe.ino
+ * @brief TEF6686-oriented identification and capability probe.
+ *
+ * @details
+ * This example forces the active policy to TEF6686 and prints:
+ * - identification words (device/hw/sw)
+ * - detected vs active variant
+ * - mismatch flag (if hardware differs from forced TEF6686)
+ * - FMSI and Digital Radio capability flags
+ */
 #include <Arduino.h>
 #include <Wire.h>
 #include <TEF668X.h>
 
 TEF668X radio;
+static const uint8_t kI2cAddress = 0x64;
+static const uint32_t kCrystalHz = 9216000UL;
 
 static const char* errorToText(TEF668X::Error e) {
   switch (e) {
@@ -33,16 +46,18 @@ void setup() {
   delay(200);
 
   Wire.begin();
-  radio.begin(Wire, 0x64);
+  radio.begin(Wire, kI2cAddress);
   radio.setI2CSpeeds(100000UL, 100000UL);
-  radio.setVariantPolicy(TEF668X::VariantPolicy::AutoDetect);
+  radio.setVariantPolicy(TEF668X::VariantPolicy::ForceTEF6686);
 
-  const TEF668X::Error e = radio.initAuto(9216000UL, false);
+  const TEF668X::Error e = radio.initAuto(kCrystalHz, false);
   if (e != TEF668X::Error::Ok) {
     Serial.print("initAuto failed: ");
     Serial.println(errorToText(e));
     return;
   }
+
+  Serial.println("Policy: ForceTEF6686");
 
   TEF668X::Identification id;
   const TEF668X::Error idErr = radio.getIdentification(id);
@@ -84,4 +99,3 @@ void loop() {
     Serial.println(errorToText(e));
   }
 }
-
