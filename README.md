@@ -30,7 +30,7 @@ void setup() {
 void loop() {}
 ```
 
-Examples (`examples/`): `plug_and_go`, `board_config`, `rds_display`, `seek_scan`, `am_radio`, `custom_settings`, `deep_control`.
+Examples (`examples/`): `plug_and_go`, `board_config`, `rds_display`, `seek_scan`, `am_radio`, `audio_ducking`, `custom_settings`, `deep_control`.
 
 ### Short names: no `tef::` in your sketch
 
