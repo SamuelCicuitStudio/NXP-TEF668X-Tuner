@@ -172,6 +172,15 @@ TEF668X::Error TEF668X::restoreChipDefaults(Band band) {
   return Error::Ok;
 }
 
+TEF668X::Error TEF668X::setVolumePercent(uint8_t percent) {
+  if (percent > 100) return Error::OutOfRange;
+  // 0 % -> -59.9 dB (the chip mutes at -60 dB), 1...100 % -> -49.5 ... 0 dB in 0.5 dB steps.
+  const int16_t volume = percent == 0 ? -599 : static_cast<int16_t>(-500 + 5 * percent);
+  const Error e = setVolume(volume);
+  if (e == Error::Ok) volumePercent_ = percent;
+  return e;
+}
+
 TEF668X::Error TEF668X::applyRegion(tef::Region region) {
   const int16_t p[] = {static_cast<int16_t>(tef::bandPlan(region).deemphasis)};
   return write(Cmd::FmDeemphasis, p, 1);

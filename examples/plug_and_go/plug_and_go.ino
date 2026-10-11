@@ -15,20 +15,20 @@ void setup() {
   Wire.begin();
 
   radio.begin(Wire);                                // describe the board (defaults)
-  if (radio.init() != tef::Error::Ok) {             // patch + start; no radio setting is changed
+  if (radio.init() != TEF_OK) {             // patch + start; no radio setting is changed
     Serial.println(F("TEF668X not found / init failed"));
     while (true) {}
   }
-  radio.applyPreset(tef::kPresetNxpFieldFM);        // NXP recommended FM sound
-  radio.applyRegion(tef::Region::Europe);           // 50 us de-emphasis
+  radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);       // NXP recommended FM sound
+  radio.applyRegion(TEF_REGION_EUROPE);             // 50 us de-emphasis
   radio.tuneFM(10470);                              // 104.70 MHz
-  radio.setVolume(-100);                            // -10.0 dB
+  radio.setVolumePercent(80);                       // 80 % (= -10 dB)
   radio.setMute(false);                             // the chip starts muted
 }
 
 void loop() {
   tef::Quality q;
-  if (radio.readQuality(q) == tef::Error::Ok && q.ready()) {
+  if (radio.readQuality(q) == TEF_OK && q.ready()) {
     Serial.print(F("level "));
     Serial.print(q.rssi() / 10);
     Serial.print(F(" dBuV  signal "));

@@ -36,9 +36,9 @@
  *   Wire.begin();
  *   radio.begin(Wire);                      // default board: 9.216 MHz, 0x64, FM+AM
  *   radio.init();                           // patch if needed, start, activate
- *   radio.applyPreset(tef::kPresetNxpFieldFM);
+ *   radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);
  *   radio.tuneFM(10470);                    // 104.70 MHz
- *   radio.setVolume(-100);                  // -10.0 dB
+ *   radio.setVolumePercent(80);             // 80 % (-10 dB)
  *   radio.setMute(false);                   // the chip starts muted
  * }
  * @endcode
@@ -284,6 +284,16 @@ class TEF668X {
    */
   Error chipDefaults(tef::Cmd cmd, int16_t* out, uint8_t& count) const;
 
+  /**
+   * @brief Volume as a percentage, like a volume knob.
+   * @param percent 0 = silent, 1...100 = -49.5 dB ... 0 dB in 0.5 dB steps (100 = no gain)
+   * @details Equal steps in dB sound even to the ear. For a boost above 0 dB (up to
+   *          +24 dB) use setVolume() in 0.1 dB. The value is remembered in volumePercent().
+   */
+  Error setVolumePercent(uint8_t percent);
+  /// Last value given to setVolumePercent() (0 before the first call).
+  uint8_t volumePercent() const { return volumePercent_; }
+
   /// Write the de-emphasis of a region (EU/JP/OIRT 50 us, USA 75 us).
   Error applyRegion(tef::Region region);
 
@@ -330,8 +340,10 @@ class TEF668X {
   bool ready_ = false;
   uint8_t lastErrorParam_ = 0;
   uint8_t lastPresetEntry_ = 0;
+  uint8_t volumePercent_ = 0;
 };
 
 #include "TEF668XRds.h"
 #include "TEF668XSeek.h"
 #include "TEF668XShadow.h"
+#include "TEF668XNames.h"

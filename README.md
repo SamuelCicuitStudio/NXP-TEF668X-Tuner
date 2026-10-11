@@ -22,15 +22,34 @@ void setup() {
   Wire.begin();
   radio.begin(Wire);                           // default board: 9.216 MHz crystal, address 0x64
   radio.init();                                // load the NXP patch, start, activate
-  radio.applyPreset(tef::kPresetNxpFieldFM);   // NXP recommended FM sound
+  radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);  // NXP recommended FM sound
   radio.tuneFM(10470);                         // 104.70 MHz
-  radio.setVolume(-100);                       // -10.0 dB
+  radio.setVolumePercent(80);                  // 80 % (= -10 dB)
   radio.setMute(false);                        // the chip starts muted
 }
 void loop() {}
 ```
 
 Examples (`examples/`): `plug_and_go`, `board_config`, `rds_display`, `seek_scan`, `am_radio`, `custom_settings`, `deep_control`.
+
+### Readable names
+
+Every value has an uppercase name as well (`TEF668XNames.h`, included automatically). Both spellings are the
+same typed value, so the compiler still checks them:
+
+| Uppercase | Same as |
+|---|---|
+| `TEF_PRESET_NXP_FIELD_FM`, `TEF_PRESET_FM_CAR`, `TEF_PRESET_AM_DX` … | `tef::kPresetNxpFieldFM`, `tef::kPresetFmCar` … |
+| `TEF_OK`, `TEF_ERR_OUT_OF_RANGE` … | `tef::Error::Ok`, `tef::Error::OutOfRange` … |
+| `TEF_BAND_FM`, `TEF_REGION_EUROPE`, `TEF_TUNE_SEARCH`, `TEF_DEEMPHASIS_75US` | `tef::Band::FM`, `tef::Region::Europe` … |
+| `TEF_CLOCK_12MHZ`, `TEF_ADDRESS_LOW`, `TEF_POWER_ENABLE_PIN`, `TEF_GPIO_RDS_DAVN` | board description values |
+| `TEF_WSH_DUAL`, `TEF_SOFTMUTE`, `TEF_HIGHCUT_FIR`, `TEF_STEREO_FORCED_MONO` | weak-signal options |
+| `TEF_RDS_DECODER`, `TEF_RDS_NORMAL`, `TEF_RDS_STRICT` … | RDS mode and policies |
+
+### Volume
+
+`radio.setVolumePercent(0…100)`: 0 % is silent, 100 % is 0 dB (no gain), in 0.5 dB steps that sound even.
+`radio.setVolume(-599…240)` gives the exact value in 0.1 dB, including a boost up to +24 dB.
 
 ---
 
