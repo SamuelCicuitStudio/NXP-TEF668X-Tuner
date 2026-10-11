@@ -1,5 +1,7 @@
 # Local reference material (not part of distributable library)
 ref/
+work/
+SENTTODAY/
 
 # Build artifacts
 .pio/
