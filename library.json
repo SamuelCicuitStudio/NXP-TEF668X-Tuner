@@ -1,7 +1,7 @@
 {
   "name": "TEF668X",
-  "version": "0.1.0",
-  "description": "Arduino library for TEF6686/87/88/89 with variant selection, patch upload, tuning, feature control, and status readback (Uno/Nano/Mega, ESP8266/ESP32, and more).",
+  "version": "0.2.0",
+  "description": "Driver for NXP TEF6686/87/88/89: every command range-checked against the user manual, presets, RDS decoder with error policies, seek, board description (crystal, address, bands, power, GPIO). Arduino AVR, ESP32, ESP8266.",
   "keywords": [
     "radio",
     "tef668x",
@@ -37,5 +37,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/SamuelCicuitStudio/TEF668X_lib.git"
+  },
+  "export": {
+    "exclude": [
+      "notes",
+      "ref",
+      "tools/__pycache__",
+      "*.tar.gz"
+    ]
   }
 }

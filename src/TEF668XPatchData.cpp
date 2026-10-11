@@ -28,12 +28,9 @@
 
 #include <stdlib.h>
 
-#if defined(__AVR__)
-#include <avr/pgmspace.h>
-#define TEF668X_PATCH_STORAGE PROGMEM
-#else
-#define TEF668X_PATCH_STORAGE
-#endif
+// Library change: flash storage on AVR and ESP8266 (see TEF668XPlatform.h). Data below is the NXP original.
+#include "TEF668XPlatform.h"
+#define TEF668X_PATCH_STORAGE TEF668X_PROGMEM
 
 extern const size_t PatchSize;
 extern const unsigned char * pPatchBytes;

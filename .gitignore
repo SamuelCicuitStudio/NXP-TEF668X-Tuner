@@ -14,3 +14,9 @@ SENTTODAY/
 # OS junk
 Thumbs.db
 .DS_Store
+
+# Local working notes (not published)
+notes/
+
+# Code generator (kept local, not published)
+tools/
