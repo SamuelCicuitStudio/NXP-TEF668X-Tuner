@@ -14,14 +14,14 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
   radio.begin(Wire);
-  if (radio.init() != tef::Error::Ok) while (true) {}
-  radio.applyPreset(tef::kPresetNxpFieldFM);
-  radio.setRds(tef::RdsMode::Decoder, tef::Restart::AfterTune, tef::RdsPin::None);  // chip default, made explicit
+  if (radio.init() != TEF_OK) while (true) {}
+  radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);
+  radio.setRds(TEF_RDS_DECODER, TEF_RESTART_AFTER_TUNE, TEF_RDS_PIN_NONE);  // chip default, made explicit
   radio.tuneFM(10470);
-  radio.setVolume(-100);
-  radio.setMute(false);
+  radio.setVolumePercent(80);
+  radio.setMute(TEF_OFF);
 
-  rds.setPolicy(tef::RdsPolicy::Normal);
+  rds.setPolicy(TEF_RDS_NORMAL);
   // Custom example: accept small errors, show PS after 3 identical receptions, RT after 2.
   // rds.setCustomPolicy({1, 3, 2});
 }

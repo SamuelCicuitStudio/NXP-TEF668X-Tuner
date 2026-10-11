@@ -11,7 +11,7 @@
  * TEF668XShadow shadow;
  * radio.attachShadow(&shadow);
  * int16_t p[7]; uint8_t n;
- * if (shadow.get(tef::Cmd::FmSoftmuteMax, p, n)) { ... }   // p[1] = limit last written
+ * if (shadow.get(TEFCmd::FmSoftmuteMax, p, n)) { ... }   // p[1] = limit last written
  * @endcode
  */
 #include <stdint.h>

@@ -10,11 +10,11 @@
  *
  * @code
  * TEF668XSeek seek(radio);
- * seek.setPlan(tef::bandPlan(tef::Region::Europe));
+ * seek.setPlan(TEF_BAND_PLAN(TEF_REGION_EUROPE));
  * seek.start(true);                                  // up
- * TEF668XSeek::Status s;
- * while ((s = seek.update()) == TEF668XSeek::Status::Running) { }  // or poll in loop()
- * if (s == TEF668XSeek::Status::Found) { ... seek.frequency() ... }
+ * TEFSeekStatus s;
+ * while ((s = seek.update()) == TEF_SEEK_RUNNING) { }  // or poll in loop()
+ * if (s == TEF_SEEK_FOUND) { ... seek.frequency() ... }
  * @endcode
  */
 #include <stdint.h>

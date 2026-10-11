@@ -25,76 +25,50 @@ void setup() {
   radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);  // NXP recommended FM sound
   radio.tuneFM(10470);                         // 104.70 MHz
   radio.setVolumePercent(80);                  // 80 % (= -10 dB)
-  radio.setMute(false);                        // the chip starts muted
+  radio.setMute(TEF_OFF);                      // the chip starts muted
 }
 void loop() {}
 ```
 
 Examples (`examples/`): `plug_and_go`, `board_config`, `rds_display`, `seek_scan`, `am_radio`, `custom_settings`, `deep_control`.
 
-### Readable names
+### Short names: no `tef::` in your sketch
 
-Every value has an uppercase name as well (`TEF668XNames.h`, included automatically). Both spellings are the
-same typed value, so the compiler still checks them:
+Everything you pass to the library has a short uppercase name (`TEF668XNames.h`, `TEF668XDefaults.h`, both
+included automatically). Each one is the same typed value as the `tef::` spelling, so the compiler still checks it;
+both styles work and can be mixed.
 
-| Uppercase | Same as |
+| What | Short names |
 |---|---|
-| `TEF_PRESET_NXP_FIELD_FM`, `TEF_PRESET_FM_CAR`, `TEF_PRESET_AM_DX` … | `tef::kPresetNxpFieldFM`, `tef::kPresetFmCar` … |
-| `TEF_OK`, `TEF_ERR_OUT_OF_RANGE` … | `tef::Error::Ok`, `tef::Error::OutOfRange` … |
-| `TEF_BAND_FM`, `TEF_REGION_EUROPE`, `TEF_TUNE_SEARCH`, `TEF_DEEMPHASIS_75US` | `tef::Band::FM`, `tef::Region::Europe` … |
-| `TEF_CLOCK_12MHZ`, `TEF_ADDRESS_LOW`, `TEF_POWER_ENABLE_PIN`, `TEF_GPIO_RDS_DAVN` | board description values |
-| `TEF_WSH_DUAL`, `TEF_SOFTMUTE`, `TEF_HIGHCUT_FIR`, `TEF_STEREO_FORCED_MONO` | weak-signal options |
-| `TEF_RDS_DECODER`, `TEF_RDS_NORMAL`, `TEF_RDS_STRICT` … | RDS mode and policies |
-
-### Volume
-
-`radio.setVolumePercent(0…100)`: 0 % is silent, 100 % is 0 dB (no gain), in 0.5 dB steps that sound even.
-`radio.setVolume(-599…240)` gives the exact value in 0.1 dB, including a boost up to +24 dB.
-
----
-
-## How the library is designed
-
-### Four levels of access
-
-| Level | Use it for | Example |
-|---|---|---|
-| **L3 presets** | a working radio in one line | `radio.applyPreset(tef::kPresetFmCar);` |
-| **L2 helpers** | change a feature as a whole, read values in units | `radio.setWsh(tef::WshFunction::Highcut, tef::Band::FM, cfg);` · `q.signalPercent()` |
-| **L1 typed commands** | any setting, all parameters, named options | `radio.setStereoMin(tef::StereoMin::ForcedMono, 400);` |
-| **L0 raw** | experiments, future commands | `radio.write(tef::Cmd::FmSoftmuteMax, p, 2);` · `radio.writeWords(...)` |
-
-All levels end in the same checked `write()`: one table, generated from the NXP user manual, holds for each command
-its module, number, parameter count, ranges, signed values, chip defaults and the variants that support it.
-A wrong value returns `tef::Error::OutOfRange` (and `lastErrorParam()` says which parameter) and **nothing is sent**.
-
-### Decisions (fixed for this library)
-
-| Topic | Decision |
-|---|---|
-| **Automatic settings** | **None.** `begin()` + `init()` only start the chip (patch, clock, activate, GPIO wiring from your board description). The chip then runs on its own defaults and is **muted**. Every radio setting is your choice: a preset, a helper or a typed command. |
-| **Board / hardware** | Described once in `tef::BoardConfig`: crystal or external clock, I²C address, FM and/or AM used, how the tuner is powered, what each TEF GPIO is wired to. The library adapts (see below). |
-| **RDS error policy** | You choose: `Strict`, `Normal` (default), `Fast`, `Dx` or `Custom` (your own numbers). |
-| **Config cache** | **Off by default.** Optional `TEF668XShadow` object (~580 bytes RAM) records every successful write. |
-| **Names** | New API only (version 0.2.0 is a redesign; 0.1.x names are gone). |
-| **Constants** | Every option is a typed `enum class`; every range and default is a `constexpr` (`tef::FmSoftmuteLevel::kStartDefault`). No magic numbers in user code, zero run-time cost. |
-| **Memory** | No heap, no `String`, no `float`, no virtual functions. Tables and presets live in flash (PROGMEM on AVR and ESP8266). Unused functions cost no flash; optional modules cost no RAM unless created. |
-| **Timing rules from NXP** | Built in: 50 µs read setup (works at 400 kHz), patch split to the Wire buffer, 5 ms I²C silence after tuner power-up, AM→FM AGC timing window. |
-
-### Board description
+| Types for variables | `TEFBoard`, `TEFQuality`, `TEFSignal`, `TEFProcessing`, `TEFAgc`, `TEFWshConfig`, `TEFRdsGroup`, `TEFLastWrite`, `TEFError`, `TEFSeekStatus`, `TEFSeekThresholds`, `TEFRdsPolicyConfig`, `TEFBandPlan`, `TEFCmd` |
+| Results | `TEF_OK`, `TEF_ERR_OUT_OF_RANGE`, `TEF_ERR_BAND_DISABLED`, `TEF_ERR_I2C` … |
+| On / off for every `enable` parameter | `TEF_ON`, `TEF_OFF` |
+| Bands, regions, tuning | `TEF_FM`, `TEF_AM`, `TEF_REGION_EUROPE` / `_USA` / `_JAPAN` / `_OIRT`, `TEF_TUNE_PRESET` / `_SEARCH` / `_AF_UPDATE` / `_JUMP` / `_CHECK` / `_END`, `TEF_FM_MIN` … `TEF_SW_MAX`, `TEF_BAND_PLAN(region)` |
+| Start-up and state | `TEF_INIT_AUTO` / `_PATCH` / `_NO_PATCH`, `TEF_VARIANT_6686` … `_6689`, `TEF_STATE_BOOT` … `TEF_STATE_AM` |
+| Board | `TEF_CLOCK_4MHZ` / `_9216KHZ` / `_12MHZ` / `_55466KHZ`, `TEF_ADDRESS_LOW` / `_HIGH`, `TEF_POWER_SHARED` / `_SWITCHED` / `_ENABLE_PIN`, `TEF_GPIO_UNUSED` / `_INPUT` / `_LOW` / `_HIGH` / `_RDS_DAVN` / `_QSI` / `_QSI_DAVN` / `_RDDA` / `_RDCL` / `_AGC_STEP` |
+| Presets | `TEF_PRESET_NXP_FIELD_FM`, `_NXP_FIELD_AM_MW_SW`, `_NXP_FIELD_AM_LW`, `_FM_CAR`, `_FM_DX`, `_AM_DX`, `_AM_ACTIVE_ANTENNA` |
+| Weak-signal handling | `TEF_WSH_OFF` / `_FAST` / `_SLOW` / `_DUAL`, `TEF_SOFTMUTE`, `TEF_HIGHCUT`, `TEF_STEREO`, `TEF_STHIBLEND`, `TEF_WSH_PART_TIME` … `_ALL`, `TEF_HIGHCUT_IIR` / `_DEEMPHASIS` / `_FIR`, `TEF_STEREO_MIN_OFF` / `_LIMIT`, `TEF_STEREO_FORCED_MONO`, `TEF_DEEMPHASIS_OFF` / `_50US` / `_75US` |
+| RDS | `TEF_RDS_OFF` / `_DECODER` / `_DEMODULATOR`, `TEF_RDS_PIN_NONE` / `_DAVN` / `_LEGACY`, `TEF_RESTART_NONE` / `_NOW` / `_AFTER_TUNE`, policies `TEF_RDS_STRICT` / `_NORMAL` / `_FAST` / `_DX` / `_CUSTOM` |
+| Seek | `TEF_SEEK_IDLE` / `_RUNNING` / `_FOUND` / `_NOT_FOUND` / `_FAILED`, `TEF_SEEK_FM_DEFAULT`, `TEF_SEEK_AM_DEFAULT` |
+| Audio | `TEF_SOURCE_RADIO` / `_ANALOG_RADIO` / `_I2S_IN` / `_AUDIO_PROCESSOR` / `_SINE`, `TEF_OUTPUT_DAC` / `_I2S`, `TEF_I2S_INPUT` / `_OUTPUT`, `TEF_I2S_MODE_*`, `TEF_I2S_FORMAT_*`, `TEF_I2S_RATE_32K` / `_44K1` / `_48K`, `TEF_WAVE_*`, `TEF_SPECIAL_NORMAL` / `_MPX` / `_DIGITAL_ANALOG`, `TEF_QSI_PIN_NONE` / `_GPIO` |
+| Digital radio | `TEF_DR_BLEND_PIN` / `_PIN_INVERTED` / `_DIGITAL` / `_ANALOG`, `TEF_MODULE_FM` … (raw access) |
+| Values in plain units | volume `TEF_VOLUME_MUTE` / `_MINUS_20DB` / `_MINUS_10DB` / `_0DB` / `_MAX`; AM bandwidth `TEF_AM_BW_3KHZ` / `_4KHZ` / `_6KHZ` / `_8KHZ`; FM bandwidth `TEF_FM_BW_56KHZ` / `_114KHZ` / `_236KHZ` / `_311KHZ`; AM antenna `TEF_ANTENNA_0DB` … `_36DB`; FM AGC `TEF_FM_AGC_84DBUV` / `_89DBUV` / `_92DBUV` |
+| Chip default of every parameter (227 names) | `TEF_<COMMAND>_<PARAMETER>_DEFAULT`, e.g. `TEF_FM_SOFTMUTE_LEVEL_START_DEFAULT` (150 = 15.0 dBuV), `TEF_AM_HIGHCUT_MAX_LIMIT_DEFAULT`, `TEF_FM_DEEMPHASIS_TIME_CONSTANT_DEFAULT` |
 
 ```cpp
-tef::BoardConfig board;
-board.clockHz = tef::kClock12MHz;                  // kClock4MHz / kClock9216kHz (default) / kClock12MHz
-board.externalClock = false;                       // true with kClock55466kHz (external clock input)
-board.i2cAddress = tef::kI2cAddressLow;            // 0x64 (GPIO_2 low) or 0x65 (GPIO_2 high)
-board.fm = true;  board.am = false;                // AM calls now return Error::BandDisabled
-board.power = tef::TunerPower::EnablePin;          // SharedWithMcu (default) / Switched / EnablePin
-board.powerPin = 7;  board.powerActiveHigh = true;
-board.gpio[0].feature = tef::GpioFeature::Davn;    // TEF GPIO_0 = "RDS data waiting" ...
-board.gpio[0].mcuPin = 2;                          // ... wired to MCU pin 2
-board.gpio[2].feature = tef::GpioFeature::AgcStep; // external FM AGC step; driven high in AM automatically
-board.i2cHz = 400000;                              // default 100 kHz
+TEFBoard board;
+board.clockHz = TEF_CLOCK_12MHZ;            // TEF_CLOCK_4MHZ / TEF_CLOCK_9216KHZ (default) / TEF_CLOCK_12MHZ
+board.externalClock = TEF_OFF;              // TEF_ON with TEF_CLOCK_55466KHZ (external clock)
+board.i2cAddress = TEF_ADDRESS_LOW;         // TEF_ADDRESS_LOW (0x64) / TEF_ADDRESS_HIGH (0x65)
+board.fm = TEF_ON;                          // bands used by the product
+board.am = TEF_OFF;                         //   AM calls now return TEF_ERR_BAND_DISABLED
+board.power = TEF_POWER_ENABLE_PIN;         // TEF_POWER_SHARED (default) / _SWITCHED / _ENABLE_PIN
+board.powerPin = 7;
+board.powerActiveHigh = TEF_ON;
+board.gpio[0].feature = TEF_GPIO_RDS_DAVN;  // TEF GPIO_0 = "RDS data waiting" ...
+board.gpio[0].mcuPin = 2;                   // ... wired to MCU pin 2
+board.gpio[2].feature = TEF_GPIO_AGC_STEP;  // external FM AGC step; driven high in AM automatically
+board.i2cHz = 400000;                       // default 100 kHz
 radio.begin(Wire, board);
 ```
 
@@ -102,15 +76,15 @@ radio.begin(Wire, board);
 |---|---|
 | `clockHz`, `externalClock` | sent with Set_ReferenceClock at init; invalid combinations are refused by `begin()` |
 | `i2cAddress` | bus address |
-| `fm`, `am` | commands, tunes and presets for a disabled band return `BandDisabled` |
-| `power`, `powerPin`, `powerActiveHigh`, `powerUpDelayMs` | `EnablePin`: switches the tuner on; `Switched`/`EnablePin`: waits before the first I²C transfer (NXP AN11254 2.8) |
+| `fm`, `am` | commands, tunes and presets for a disabled band return `TEF_ERR_BAND_DISABLED` |
+| `power`, `powerPin`, `powerActiveHigh`, `powerUpDelayMs` | `TEF_POWER_ENABLE_PIN`: switches the tuner on; `_SWITCHED` / `_ENABLE_PIN`: waits before the first I²C transfer (NXP AN11254 2.8) |
 | `gpio[n].feature` | programmed at init for FM and AM (AgcStep becomes a fixed high level in AM, RDS features are off in AM) |
 | `gpio[n].mcuPin` | input used by `TEF668XRds` (Davn) to read the chip only when data waits |
 | `i2cHz`, `i2cPatchHz`, `patchChunkBytes` | bus speeds; chunk is limited to the Wire buffer automatically |
 
 ### Start-up
 
-`radio.init()` (mode `Auto`) reads the device state and does only what is needed:
+`radio.init()` (`TEF_INIT_AUTO`) reads the device state and does only what is needed:
 
 | State found | Action |
 |---|---|
@@ -118,7 +92,7 @@ radio.begin(Wire, board);
 | idle | reference clock → Activate |
 | active (e.g. MCU reset only) | keep running, settings are kept |
 
-Then it identifies the variant and programs the GPIOs. `InitMode::Patch` forces a new patch, `InitMode::NoPatch`
+Then it identifies the variant and programs the GPIOs. `radio.init(TEF_INIT_PATCH)` forces a new patch, `TEF_INIT_NO_PATCH`
 refuses a chip that still needs it. `radio.checkAlive()` detects a power dip (the chip falls back to boot state and
 loses its settings): call `init()` and re-apply your settings.
 
@@ -130,17 +104,17 @@ loses its settings): call `init()` and re-apply your settings.
 
 ```cpp
 radio.tuneFM(10470);                        // 104.70 MHz, Preset (short mute)
-radio.tuneFM(9800, tef::TuneMode::Search);  // tune muted, judge quality, then tuneEnd() or Preset
-radio.tuneFM(9930, tef::TuneMode::AfUpdate);// inaudible check of an alternative frequency
+radio.tuneFM(9800, TEF_TUNE_SEARCH);  // tune muted, judge quality, then tuneEnd() or Preset
+radio.tuneFM(9930, TEF_TUNE_AF_UPDATE);// inaudible check of an alternative frequency
 radio.tuneAM(999);                          // MW 999 kHz (LW 144-288, MW 522-1710, SW 2300-27000)
 radio.tuneEnd();                            // release the mute of Search / Check
-radio.applyRegion(tef::Region::USA);        // 75 us de-emphasis; tef::bandPlan(Region) gives limits/steps
+radio.applyRegion(TEF_REGION_USA);        // 75 us de-emphasis; TEF_BAND_PLAN(region) gives limits/steps
 ```
 
 ### Reading the reception
 
 ```cpp
-tef::Quality q;
+TEFQuality q;
 radio.readQuality(q);
 q.ready();          // tuning finished
 q.rssi();           // 0.1 dBuV
@@ -150,9 +124,9 @@ q.offset;           // 0.1 kHz
 q.signalPercent();  // 0...100 (level, reduced by noise and multipath)
 q.coChannel();      // AM co-channel detected
 
-tef::SignalStatus s;      radio.readSignal(s);       // s.stereo, s.digital
-tef::ProcessingStatus ps; radio.readProcessing(ps);  // how much SoftMute / HighCut / mono is applied now
-tef::AgcStatus agc;       radio.readAgc(agc);
+TEFSignal s;      radio.readSignal(s);       // s.stereo, s.digital
+TEFProcessing ps; radio.readProcessing(ps);  // how much SoftMute / HighCut / mono is applied now
+TEFAgc agc;       radio.readAgc(agc);
 ```
 
 ### Weak-signal handling (the "sound" of the radio)
@@ -162,33 +136,33 @@ multipath, modulation) start the control at `start` and reach 100 % over `slope`
 `max`/`min` limit the action. Change a whole function at once:
 
 ```cpp
-tef::WshConfig cfg;
-radio.wshDefaults(tef::WshFunction::Softmute, tef::Band::FM, cfg);  // chip defaults
+TEFWshConfig cfg;
+radio.wshDefaults(TEF_SOFTMUTE, TEF_FM, cfg);  // chip defaults
 cfg.level.start = 120;                                              // start at 12 dBuV
 cfg.max.limit = 150;                                                // at most 15 dB
-radio.setWsh(tef::WshFunction::Softmute, tef::Band::FM, cfg, tef::kWshLevel | tef::kWshMax);
+radio.setWsh(TEF_SOFTMUTE, TEF_FM, cfg, TEF_WSH_PART_LEVEL | TEF_WSH_PART_MAX);
 ```
 
-Or one command: `radio.setSoftmuteLevel(tef::Band::FM, tef::WshMode::Dual, 120, 220);`.
-`radio.restoreChipDefaults(tef::Band::FM)` writes back every documented default.
+Or one command: `radio.setSoftmuteLevel(TEF_FM, TEF_WSH_DUAL, 120, 220);`.
+`radio.restoreChipDefaults(TEF_FM)` writes back every documented default.
 
 ### Presets
 
 | Preset | Source | Content |
 |---|---|---|
-| `kPresetNxpFieldFM` | NXP user manual "improved field performance" notes | multipath suppression + channel EQ on, faster SoftMute, HighCut / Stereo / StHiBlend tuned for noise and multipath, HighCut 2.4 kHz, LowCut 100 Hz |
-| `kPresetNxpFieldAmMwSw` | NXP user manual | AM HighCut from 47 dBuV |
-| `kPresetNxpFieldAmLw` | NXP user manual | LW HighCut 52 dBuV, SoftMute 34 dBuV / 30 dB, max 33 dB |
-| `kPresetFmCar` | tested car sketch | complete FM car setup (NXP values + AGC 89 dBuV, noise blanker, RDS decoder …) |
-| `kPresetFmDx`, `kPresetAmDx` | community practice | less SoftMute, narrow AM filter |
-| `kPresetAmActiveAntenna` | NXP AN11254 2.2 | 18 dB antenna attenuation, -7 dB level offset |
+| `TEF_PRESET_NXP_FIELD_FM` | NXP user manual "improved field performance" notes | multipath suppression + channel EQ on, faster SoftMute, HighCut / Stereo / StHiBlend tuned for noise and multipath, HighCut 2.4 kHz, LowCut 100 Hz |
+| `TEF_PRESET_NXP_FIELD_AM_MW_SW` | NXP user manual | AM HighCut from 47 dBuV |
+| `TEF_PRESET_NXP_FIELD_AM_LW` | NXP user manual | LW HighCut 52 dBuV, SoftMute 34 dBuV / 30 dB, max 33 dB |
+| `TEF_PRESET_FM_CAR` | tested car sketch | complete FM car setup (NXP values + AGC 89 dBuV, noise blanker, RDS decoder …) |
+| `TEF_PRESET_FM_DX`, `TEF_PRESET_AM_DX` | community practice | less SoftMute, narrow AM filter |
+| `TEF_PRESET_AM_ACTIVE_ANTENNA` | NXP AN11254 2.2 | 18 dB antenna attenuation, -7 dB level offset |
 
 Presets are layered (`applyPreset(base); applyPreset(mine);`). Write your own in the same format:
 
 ```cpp
 const uint8_t myPreset[] TEF668X_PROGMEM = {
   TEF_CMD(FmSoftmuteMax, 2), TEF_W(1), TEF_W(120),
-  TEF_CMD(FmDeemphasis, 1), TEF_W(tef::Deemphasis::Us75),
+  TEF_CMD(FmDeemphasis, 1), TEF_W(TEF_DEEMPHASIS_75US),
   TEF_END
 };
 ```
@@ -197,7 +171,7 @@ const uint8_t myPreset[] TEF668X_PROGMEM = {
 
 ```cpp
 TEF668XRds rds(radio);
-rds.setPolicy(tef::RdsPolicy::Normal);
+rds.setPolicy(TEF_RDS_NORMAL);
 void loop() {
   rds.update();                                   // at least every 80 ms
   if (rds.psChanged()) Serial.println(rds.ps());  // station name
@@ -207,11 +181,11 @@ void loop() {
 
 | Policy | Accepted blocks | PS confirmations | RT confirmations | Use |
 |---|---|---|---|---|
-| `Strict` | error-free only | 3 | 3 | clean display, slower |
-| `Normal` (default) | + small corrected errors | 2 | 2 | everyday |
-| `Fast` | + large corrected errors | 1 | 1 | fastest, may flicker |
-| `Dx` | + large corrected errors | 2 | 2 | weak stations |
-| `Custom` | `setCustomPolicy({maxError, psConfirm, rtConfirm})` | | | your choice |
+| `TEF_RDS_STRICT` | error-free only | 3 | 3 | clean display, slower |
+| `TEF_RDS_NORMAL` (default) | + small corrected errors | 2 | 2 | everyday |
+| `TEF_RDS_FAST` | + large corrected errors | 1 | 1 | fastest, may flicker |
+| `TEF_RDS_DX` | + large corrected errors | 2 | 2 | weak stations |
+| `TEF_RDS_CUSTOM` | `setCustomPolicy({maxError, psConfirm, rtConfirm})` | | | your choice |
 
 Decoded: `pi()`, `pty()`, `tp()`, `ta()`, `music()`, `ps()`, `rt()`, `af(i)` / `afCount()`, `clock()`; status:
 `synced()`, `dataLost()`, `lastErrorLevel()`, `quality()`. Data is cleared automatically after a retune.
@@ -220,13 +194,13 @@ Decoded: `pi()`, `pty()`, `tp()`, `ta()`, `music()`, `ps()`, `rt()`, `af(i)` / `
 
 ```cpp
 TEF668XSeek seek(radio);
-seek.setPlan(tef::bandPlan(tef::Region::Europe));
+seek.setPlan(TEF_BAND_PLAN(TEF_REGION_EUROPE));
 seek.start(true);                                         // up
 // in loop(): Found / NotFound / Failed is returned once
-if (seek.update() == TEF668XSeek::Status::Found) Serial.println(seek.frequency());
+if (seek.update() == TEF_SEEK_FOUND) Serial.println(seek.frequency());
 ```
 
-Thresholds per band (`tef::SeekThresholds`: level, noise, multipath, offset, settle time).
+Thresholds per band (`TEFSeekThresholds`: level, noise, multipath, offset, settle time).
 
 ### Settings copy (optional module, ~580 bytes RAM)
 
@@ -234,14 +208,15 @@ Thresholds per band (`tef::SeekThresholds`: level, noise, multipath, offset, set
 TEF668XShadow shadow;
 radio.attachShadow(&shadow);
 int16_t p[7]; uint8_t n;
-shadow.get(tef::Cmd::FmSoftmuteMax, p, n);   // last values written
+shadow.get(TEFCmd::FmSoftmuteMax, p, n);   // last values written
 ```
 
 ### Errors
 
-Every call returns `tef::Error`: `Ok`, `NotBegun`, `NotReady`, `I2CError`, `Timeout`, `InvalidArg`, `OutOfRange`
-(`lastErrorParam()`), `ParamCount`, `UnsupportedFeature` (FMSI / digital radio on a variant without it),
-`BandDisabled`, `BadState`, `PatchDataError`.
+Every call returns a `TEFError`: `TEF_OK`, `TEF_ERR_NOT_BEGUN`, `TEF_ERR_NOT_READY`, `TEF_ERR_I2C`, `TEF_ERR_TIMEOUT`,
+`TEF_ERR_INVALID_ARG`, `TEF_ERR_OUT_OF_RANGE` (`lastErrorParam()` says which parameter), `TEF_ERR_PARAM_COUNT`,
+`TEF_ERR_UNSUPPORTED` (FMSI / digital radio on a variant without it), `TEF_ERR_BAND_DISABLED`, `TEF_ERR_BAD_STATE`,
+`TEF_ERR_PATCH_DATA`.
 
 ### Variants
 

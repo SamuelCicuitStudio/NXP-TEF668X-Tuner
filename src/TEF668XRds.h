@@ -11,7 +11,7 @@
  *
  * @code
  * TEF668XRds rds(radio);                      // policy Normal by default
- * rds.setPolicy(tef::RdsPolicy::Strict);      // or Fast, Dx, Custom
+ * rds.setPolicy(TEF_RDS_STRICT);      // or Fast, Dx, Custom
  * void loop() {
  *   rds.update();                             // call at least every 80 ms
  *   if (rds.psChanged()) Serial.println(rds.ps());

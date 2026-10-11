@@ -9,10 +9,10 @@
  *
  * | Level | What                         | Example                                              |
  * |-------|------------------------------|------------------------------------------------------|
- * | L3    | presets                      | `radio.applyPreset(tef::kPresetNxpFieldFM);`         |
+ * | L3    | presets                      | `radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);`         |
  * | L2    | feature helpers              | `radio.setWsh(WshFunction::Softmute, Band::FM, cfg);`|
  * | L1    | one function per command     | `radio.setSoftmuteMax(Band::FM, true, 150);`         |
- * | L0    | raw command / raw words      | `radio.write(tef::Cmd::FmSoftmuteMax, p, 2);`        |
+ * | L0    | raw command / raw words      | `radio.write(TEFCmd::FmSoftmuteMax, p, 2);`        |
  *
  * - **Nothing is configured behind your back.** begin() + init() only bring the chip up
  *   (patch, clock, activate, GPIO wiring from BoardConfig). The chip then runs with its
@@ -96,7 +96,7 @@ class TEF668X {
    * @brief Attach the I2C bus and describe the board. Sends nothing except the
    *        tuner power switching when BoardConfig::power == TunerPower::EnablePin.
    * @param wire  an already started TwoWire (call Wire.begin() first)
-   * @param board crystal, address, bands, power and GPIO wiring (see tef::BoardConfig)
+   * @param board crystal, address, bands, power and GPIO wiring (see TEFBoard)
    * @return Error::Ok, or Error::InvalidArg for an unsupported clock / address / pin.
    * @details With TunerPower::Switched or EnablePin it waits powerUpDelayMs because the
    *          TEF must not see I2C traffic during its first 5 ms (AN11254 2.8).
@@ -142,7 +142,7 @@ class TEF668X {
 
   /**
    * @brief Send one command through the checked path (all L1/L2/L3 calls end here).
-   * @param cmd    command id (tef::Cmd::FmSoftmuteMax ...)
+   * @param cmd    command id (TEFCmd::FmSoftmuteMax ...)
    * @param params parameter words, signed or unsigned as in the user manual
    * @param count  between the required and the maximum parameter count of cmd
    * @details Checks: init done, band enabled, variant, state, count, ranges. Also
@@ -259,7 +259,7 @@ class TEF668X {
    * @param fn    Softmute, Highcut (incl. LowCut limits), Stereo or StHiBlend
    * @param band  Band::AM only for Softmute and Highcut
    * @param cfg   all settings of that function (start from wshDefaults())
-   * @param parts which sub-commands to send (tef::kWshTime | tef::kWshLevel ...);
+   * @param parts which sub-commands to send (TEF_WSH_PART_TIME | TEF_WSH_PART_LEVEL ...);
    *              parts that do not exist for fn/band are skipped
    * @details Sends _Time, _Level, _Noise, _Mph, _Mod, _Max, _Min as selected. Highcut
    *          `min` maps to Highcut_Min; LowCut stays on setLowcutMax/Min.

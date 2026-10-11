@@ -23,11 +23,11 @@ void setup() {
   radio.applyRegion(TEF_REGION_EUROPE);             // 50 us de-emphasis
   radio.tuneFM(10470);                              // 104.70 MHz
   radio.setVolumePercent(80);                       // 80 % (= -10 dB)
-  radio.setMute(false);                             // the chip starts muted
+  radio.setMute(TEF_OFF);                           // the chip starts muted
 }
 
 void loop() {
-  tef::Quality q;
+  TEFQuality q;
   if (radio.readQuality(q) == TEF_OK && q.ready()) {
     Serial.print(F("level "));
     Serial.print(q.rssi() / 10);

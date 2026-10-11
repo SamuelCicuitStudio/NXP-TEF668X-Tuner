@@ -10,22 +10,22 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
   radio.begin(Wire);
-  if (radio.init() != tef::Error::Ok) while (true) {}
+  if (radio.init() != TEF_OK) while (true) {}
 
-  radio.applyPreset(tef::kPresetNxpFieldAmMwSw);   // NXP advice for MW/SW
-  // radio.applyPreset(tef::kPresetAmActiveAntenna); // with an active antenna
-  radio.setAmBandwidth(false, 60);                 // 6 kHz (30 = 3 kHz ... 80 = 8 kHz)
-  radio.setAmNoiseBlanker(true, 1000);
-  radio.setNoiseBlankerAudio(true, 1000);
+  radio.applyPreset(TEF_PRESET_NXP_FIELD_AM_MW_SW);   // NXP advice for MW/SW
+  // radio.applyPreset(TEF_PRESET_AM_ACTIVE_ANTENNA); // with an active antenna
+  radio.setAmBandwidth(TEF_OFF, TEF_AM_BW_6KHZ);   // fixed 6 kHz (also 3 / 4 / 8 kHz)
+  radio.setAmNoiseBlanker(TEF_ON, TEF_AM_NOISE_BLANKER_SENSITIVITY_DEFAULT);
+  radio.setNoiseBlankerAudio(TEF_ON, TEF_AM_NOISE_BLANKER_AUDIO_SENSITIVITY_DEFAULT);
 
   radio.tuneAM(999);                               // 999 kHz MW
-  radio.setVolume(-100);
-  radio.setMute(false);
+  radio.setVolumePercent(80);
+  radio.setMute(TEF_OFF);
 }
 
 void loop() {
-  tef::Quality q;
-  if (radio.readQuality(q) == tef::Error::Ok && q.ready()) {
+  TEFQuality q;
+  if (radio.readQuality(q) == TEF_OK && q.ready()) {
     Serial.print(radio.frequency());
     Serial.print(F(" kHz  level "));
     Serial.print(q.rssi() / 10);

@@ -13,9 +13,9 @@ TEF668XShadow shadow;
 
 // Own preset: entries = TEF_CMD(command, parameter count) followed by the words.
 const uint8_t myPreset[] TEF668X_PROGMEM = {
-  TEF_CMD(FmSoftmuteMax, 2), TEF_W(1), TEF_W(120),       // SoftMute at most 12 dB
-  TEF_CMD(FmStereoMin, 2), TEF_W(1), TEF_W(200),         // keep at least 20 dB stereo separation
-  TEF_CMD(FmDeemphasis, 1), TEF_W(tef::Deemphasis::Us75),// USA
+  TEF_CMD(FmSoftmuteMax, 2), TEF_W(TEF_ON), TEF_W(120),                  // SoftMute at most 12 dB
+  TEF_CMD(FmStereoMin, 2), TEF_W(TEF_STEREO_MIN_LIMIT), TEF_W(200),     // keep >= 20 dB stereo separation
+  TEF_CMD(FmDeemphasis, 1), TEF_W(TEF_DEEMPHASIS_75US),                  // USA
   TEF_END
 };
 
@@ -23,25 +23,25 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
   radio.begin(Wire);
-  if (radio.init() != tef::Error::Ok) while (true) {}
+  if (radio.init() != TEF_OK) while (true) {}
   radio.attachShadow(&shadow);
 
-  radio.applyPreset(tef::kPresetNxpFieldFM);
-  if (radio.applyPreset(myPreset) != tef::Error::Ok) {
+  radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);
+  if (radio.applyPreset(myPreset) != TEF_OK) {
     Serial.print(F("preset stopped at entry "));
     Serial.println(radio.lastPresetEntry());
   }
 
   // HighCut: start from the chip defaults, change two things, write all of it.
-  tef::WshConfig hc;
-  radio.wshDefaults(tef::WshFunction::Highcut, tef::Band::FM, hc);
+  TEFWshConfig hc;
+  radio.wshDefaults(TEF_HIGHCUT, TEF_FM, hc);
   hc.level.start = 300;                 // start cutting treble below 30 dBuV (default 36)
   hc.max.limit = 3000;                  // strongest cut: treble down to 3 kHz (default 4 kHz)
-  radio.setWsh(tef::WshFunction::Highcut, tef::Band::FM, hc, tef::kWshLevel | tef::kWshMax);
+  radio.setWsh(TEF_HIGHCUT, TEF_FM, hc, TEF_WSH_PART_LEVEL | TEF_WSH_PART_MAX);
 
   // Range checking: this is refused and nothing is sent.
-  const tef::Error e = radio.setSoftmuteMax(tef::Band::FM, true, 900);  // limit max is 400
-  if (e == tef::Error::OutOfRange) {
+  const TEFError e = radio.setSoftmuteMax(TEF_FM, TEF_ON, 900);  // limit max is 400
+  if (e == TEF_ERR_OUT_OF_RANGE) {
     Serial.print(F("refused parameter #"));
     Serial.println(radio.lastErrorParam());     // 1 = limit
   }
@@ -49,18 +49,18 @@ void setup() {
   // What was written last for SoftMute max (shadow):
   int16_t p[7];
   uint8_t n;
-  if (shadow.get(tef::Cmd::FmSoftmuteMax, p, n)) {
+  if (shadow.get(TEFCmd::FmSoftmuteMax, p, n)) {
     Serial.print(F("SoftMute max limit = "));
     Serial.println(p[1]);                        // 120 from myPreset
   }
 
   // Constants for every range and default are generated too:
   Serial.print(F("SoftMute level default start: "));
-  Serial.println(tef::FmSoftmuteLevel::kStartDefault);  // 150 = 15.0 dBuV
+  Serial.println(TEF_FM_SOFTMUTE_LEVEL_START_DEFAULT);  // 150 = 15.0 dBuV
 
   radio.tuneFM(10470);
-  radio.setVolume(-100);
-  radio.setMute(false);
+  radio.setVolumePercent(80);
+  radio.setMute(TEF_OFF);
 }
 
 void loop() {}

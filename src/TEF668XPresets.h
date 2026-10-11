@@ -18,7 +18,7 @@
  *   TEF_CMD(FmHighcutMax, 2),  TEF_W(1), TEF_W(3000),    // HighCut down to 3 kHz
  *   TEF_END
  * };
- * radio.applyPreset(tef::kPresetNxpFieldFM);
+ * radio.applyPreset(TEF_PRESET_NXP_FIELD_FM);
  * radio.applyPreset(myPreset);
  * @endcode
  */
